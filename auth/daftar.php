@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = mysqli_query($conn, $query);
 
         if ($result) {
-            echo "<script>alert('Registrasi berhasil. Silakan login.'); window.location='login.php';</script>";
+            echo "<script>alert('Registrasi berhasil. Silakan login.'); window.location='../index.php';</script>";
         } else {
             echo "Error: " . mysqli_error($conn);
         }
