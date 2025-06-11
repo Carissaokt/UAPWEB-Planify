@@ -170,7 +170,7 @@ foreach ($tugas as $item) {
         </thead>
         <tbody>
           <?php if (count($tugas) === 0): ?>
-            <tr><td colspan="6" class="px-4 py-4 text-center italic text-gray-500">Tugas tidak ditemukan.</td></tr>
+            <tr><td colspan="6" class="px-4 py-4 text-center italic text-gray-500">Tugas belum ditambahkan.</td></tr>
           <?php else: ?>
             <?php foreach ($tugas as $item): ?>
               <tr class="border-b hover:bg-gray-50">
