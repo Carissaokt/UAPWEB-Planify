@@ -7,15 +7,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 require '../db/koneksi.php';
 
 $tugas = [];
-$searchQuery = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['reset'])) {
-        $searchQuery = '';
-    } else {
-        $searchQuery = isset($_POST['search']) ? trim($_POST['search']) : '';
-    }
-}
+$searchQuery = $_GET['search'] ?? '';
 
 $searchSQL = '%' . $searchQuery . '%';
 $query = "SELECT * FROM tugas WHERE judul LIKE ? ORDER BY deadline ASC";
@@ -86,7 +78,7 @@ $totalPengguna = $rowUser['total_pengguna'];
     </nav>
   </div>
   <div>
-    <a href=" ../auth/keluar.php" onclick="return confirm('Yakin untuk keluar?');"
+    <a href="../auth/keluar.php" onclick="return confirm('Yakin untuk keluar?');"
        class="flex items-center gap-3 py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition w-full">
       <i class="fas fa-sign-out-alt"></i> Logout
     </a>
@@ -124,13 +116,13 @@ $totalPengguna = $rowUser['total_pengguna'];
   </div>
 
   <!-- Search Form -->
-  <form method="post" class="flex flex-col sm:flex-row gap-2 sm:items-center mb-6">
+  <form method="get" class="flex flex-col sm:flex-row gap-2 sm:items-center mb-6">
     <input type="text" name="search" placeholder="Cari berdasarkan judul..."
       value="<?= htmlspecialchars($searchQuery) ?>"
       class="w-full sm:w-1/2 px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300" />
-    <button type="submit" name="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Cari</button>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Cari</button>
     <?php if (!empty($searchQuery)): ?>
-      <button type="submit" name="reset" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Reset</button>
+      <a href="beranda_admin.php" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Reset</a>
     <?php endif; ?>
   </form>
 
@@ -150,7 +142,7 @@ $totalPengguna = $rowUser['total_pengguna'];
       </thead>
       <tbody>
         <?php if (count($tugas) === 0): ?>
-          <tr><td colspan="7" class="px-4 py-4 text-center italic text-gray-500">Tugas Belum Di Tambahkan.</td></tr>
+          <tr><td colspan="7" class="px-4 py-4 text-center italic text-gray-500">Tugas tidak ditemukan.</td></tr>
         <?php else: ?>
           <?php foreach ($tugas as $item): ?>
             <tr class="border-b hover:bg-gray-50">
