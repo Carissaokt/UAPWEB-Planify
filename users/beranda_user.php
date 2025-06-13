@@ -9,27 +9,16 @@ require '../db/koneksi.php';
 $username = $_SESSION['username'];
 $tugas = [];
 
-$searchQuery = '';
-$filterKategori = '';
-$filterStatus = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['reset'])) {
-        $searchQuery = '';
-        $filterKategori = '';
-        $filterStatus = '';
-    } else {
-        $searchQuery = isset($_POST['search']) ? trim($_POST['search']) : '';
-        $filterKategori = $_POST['kategori'] ?? '';
-        $filterStatus = $_POST['status'] ?? '';
-    }
-}
+$searchQuery = $_GET['search'] ?? '';
+$filterKategori = $_GET['kategori'] ?? '';
+$filterStatus = $_GET['status'] ?? '';
 
 $searchSQL = '%' . $searchQuery . '%';
 
+// Query dasar
 $query = "SELECT * FROM tugas WHERE username = ? AND judul LIKE ?";
 
-// filt berdasarkan ketegori dan status
+// Tambahan filter kategori dan status
 if (!empty($filterKategori)) {
     $query .= " AND kategori = ?";
 }
@@ -40,6 +29,7 @@ if (!empty($filterStatus)) {
 $query .= " ORDER BY deadline ASC";
 $stmt = $conn->prepare($query);
 
+// Binding parameter dinamis
 if (!empty($filterKategori) && !empty($filterStatus)) {
     $stmt->bind_param("ssss", $username, $searchSQL, $filterKategori, $filterStatus);
 } elseif (!empty($filterKategori)) {
@@ -57,7 +47,7 @@ while ($row = $result->fetch_assoc()) {
     $tugas[] = $row;
 }
 
-// hitung statistik didalam kotak
+// Hitung statistik
 $totalTugas = count($tugas);
 $selesai = $proses = $pending = 0;
 
@@ -78,7 +68,7 @@ foreach ($tugas as $item) {
 </head>
 <body class="bg-gray-100 font-sans min-h-screen">
 
-
+<!-- Header -->
 <header class="bg-white shadow-md py-4 px-6 flex justify-between items-center border-b">
   <div class="flex items-center space-x-3">
     <img src="../assets/logo.png" alt="PLANify Logo" class="w-8 h-8">
@@ -89,16 +79,17 @@ foreach ($tugas as $item) {
       <p class="text-sm text-gray-500">Halo,</p>
       <p class="text-blue-600 font-semibold"><?= htmlspecialchars($_SESSION['username']) ?></p>
     </div>
-    <a href=" ../auth/keluar.php" onclick="return confirm('Yakin untuk keluar?');" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">
+    <a href="../auth/keluar.php" onclick="return confirm('Yakin untuk keluar?');" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">
       Logout
     </a>
   </div>
 </header>
 
+<!-- Main Content -->
 <main class="p-6">
   <div class="max-w-6xl mx-auto">
 
-    <!-- kotak keterangan -->
+    <!-- Statistik -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-blue-600 text-white rounded p-4 shadow">
         <p class="text-lg font-semibold">Total Tugas</p>
@@ -118,13 +109,14 @@ foreach ($tugas as $item) {
       </div>
     </div>
 
+    <!-- Search & Tambah -->
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold text-gray-800">Daftar Tugas Saya</h2>
       <a href="add_tugas.php" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Tambahkan Tugas</a>
     </div>
 
-    <!-- pencarian -->
-    <form method="post" class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6">
+    <!-- Search Form -->
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6">
       <input
         type="text"
         name="search"
@@ -148,14 +140,14 @@ foreach ($tugas as $item) {
       </select>
 
       <div class="flex gap-2">
-        <button type="submit" name="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filter</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filter</button>
         <?php if (!empty($searchQuery) || !empty($filterKategori) || !empty($filterStatus)): ?>
-          <button type="submit" name="reset" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Reset</button>
+          <a href="beranda_user.php" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Reset</a>
         <?php endif; ?>
       </div>
     </form>
 
-    <!-- tabel tugas -->
+    <!-- Tabel Tugas -->
     <div class="overflow-x-auto bg-white rounded shadow">
       <table class="min-w-full text-sm text-left text-gray-600">
         <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
@@ -170,7 +162,7 @@ foreach ($tugas as $item) {
         </thead>
         <tbody>
           <?php if (count($tugas) === 0): ?>
-            <tr><td colspan="6" class="px-4 py-4 text-center italic text-gray-500">Tugas belum ditambahkan.</td></tr>
+            <tr><td colspan="6" class="px-4 py-4 text-center italic text-gray-500">Tugas tidak ditemukan.</td></tr>
           <?php else: ?>
             <?php foreach ($tugas as $item): ?>
               <tr class="border-b hover:bg-gray-50">
