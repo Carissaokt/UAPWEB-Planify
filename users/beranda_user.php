@@ -15,21 +15,13 @@ $filterStatus = $_GET['status'] ?? '';
 
 $searchSQL = '%' . $searchQuery . '%';
 
-// Query dasar
 $query = "SELECT * FROM tugas WHERE username = ? AND judul LIKE ?";
-
-// Tambahan filter kategori dan status
-if (!empty($filterKategori)) {
-    $query .= " AND kategori = ?";
-}
-if (!empty($filterStatus)) {
-    $query .= " AND status = ?";
-}
-
+if (!empty($filterKategori)) $query .= " AND kategori = ?";
+if (!empty($filterStatus)) $query .= " AND status = ?";
 $query .= " ORDER BY deadline ASC";
+
 $stmt = $conn->prepare($query);
 
-// Binding parameter dinamis
 if (!empty($filterKategori) && !empty($filterStatus)) {
     $stmt->bind_param("ssss", $username, $searchSQL, $filterKategori, $filterStatus);
 } elseif (!empty($filterKategori)) {
@@ -47,10 +39,8 @@ while ($row = $result->fetch_assoc()) {
     $tugas[] = $row;
 }
 
-// Hitung statistik
 $totalTugas = count($tugas);
 $selesai = $proses = $pending = 0;
-
 foreach ($tugas as $item) {
     if ($item['status'] === 'Selesai') $selesai++;
     elseif ($item['status'] === 'Proses') $proses++;
@@ -71,7 +61,7 @@ foreach ($tugas as $item) {
 <!-- Header -->
 <header class="bg-white shadow-md py-4 px-6 flex justify-between items-center border-b">
   <div class="flex items-center space-x-3">
-    <img src="../assets/logo.png" alt="PLANify Logo" class="w-8 h-8">
+    <img src="../img/logoPlanify.png" alt="PLANify Logo" class="w-12 h-12">
     <h1 class="text-2xl font-semibold text-blue-700">PLANify</h1>
   </div>
   <div class="flex items-center gap-4">
@@ -85,7 +75,6 @@ foreach ($tugas as $item) {
   </div>
 </header>
 
-<!-- Main Content -->
 <main class="p-6">
   <div class="max-w-6xl mx-auto">
 
@@ -109,36 +98,26 @@ foreach ($tugas as $item) {
       </div>
     </div>
 
-    <!-- Search & Tambah -->
+    <!-- Search -->
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold text-gray-800">Daftar Tugas Saya</h2>
       <a href="add_tugas.php" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Tambahkan Tugas</a>
     </div>
 
-    <!-- Search Form -->
     <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6">
-      <input
-        type="text"
-        name="search"
-        placeholder="Cari berdasarkan judul..."
-        value="<?= htmlspecialchars($searchQuery) ?>"
-        class="px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-      />
-
+      <input type="text" name="search" placeholder="Cari berdasarkan judul..." value="<?= htmlspecialchars($searchQuery) ?>" class="px-4 py-2 border rounded shadow-sm">
       <select name="kategori" class="px-4 py-2 border rounded shadow-sm">
         <option value="">-- Semua Kategori --</option>
         <option value="Kerja" <?= $filterKategori === 'Kerja' ? 'selected' : '' ?>>Kerja</option>
         <option value="Kuliah" <?= $filterKategori === 'Kuliah' ? 'selected' : '' ?>>Kuliah</option>
         <option value="Pribadi" <?= $filterKategori === 'Pribadi' ? 'selected' : '' ?>>Pribadi</option>
       </select>
-
       <select name="status" class="px-4 py-2 border rounded shadow-sm">
         <option value="">-- Semua Status --</option>
         <option value="Selesai" <?= $filterStatus === 'Selesai' ? 'selected' : '' ?>>Selesai</option>
         <option value="Proses" <?= $filterStatus === 'Proses' ? 'selected' : '' ?>>Proses</option>
         <option value="Belum Selesai" <?= $filterStatus === 'Belum Selesai' ? 'selected' : '' ?>>Belum Selesai</option>
       </select>
-
       <div class="flex gap-2">
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filter</button>
         <?php if (!empty($searchQuery) || !empty($filterKategori) || !empty($filterStatus)): ?>
@@ -147,13 +126,14 @@ foreach ($tugas as $item) {
       </div>
     </form>
 
-    <!-- Tabel Tugas -->
+    <!-- Tabel -->
     <div class="overflow-x-auto bg-white rounded shadow">
       <table class="min-w-full text-sm text-left text-gray-600">
         <thead class="bg-gray-200 text-gray-700 text-sm uppercase">
           <tr>
             <th class="px-4 py-3">Judul</th>
             <th class="px-4 py-3">Deadline</th>
+            <th class="px-4 py-3">Sisa Waktu</th>
             <th class="px-4 py-3">Kategori</th>
             <th class="px-4 py-3">Prioritas</th>
             <th class="px-4 py-3">Status</th>
@@ -162,12 +142,21 @@ foreach ($tugas as $item) {
         </thead>
         <tbody>
           <?php if (count($tugas) === 0): ?>
-            <tr><td colspan="6" class="px-4 py-4 text-center italic text-gray-500">Tugas tidak ditemukan.</td></tr>
+            <tr><td colspan="7" class="px-4 py-4 text-center italic text-gray-500">Tugas belum ditambahkan.</td></tr>
           <?php else: ?>
             <?php foreach ($tugas as $item): ?>
+              <?php
+                $deadline = new DateTime($item['deadline']);
+                $today = new DateTime();
+                $selisih = $today->diff($deadline)->format('%r%a');
+                $sisaWaktu = ($selisih == 0) ? "Hari ini" : (($selisih > 0) ? "$selisih hari lagi" : "Terlambat " . abs($selisih) . " hari");
+              ?>
               <tr class="border-b hover:bg-gray-50">
                 <td class="px-4 py-3 font-medium"><?= htmlspecialchars($item['judul']) ?></td>
                 <td class="px-4 py-3"><?= $item['deadline'] ?></td>
+                <td class="px-4 py-3 font-semibold <?= $selisih < 0 ? 'text-red-600' : 'text-green-600' ?>">
+                  <?= $sisaWaktu ?>
+                </td>
                 <td class="px-4 py-3"><?= $item['kategori'] ?></td>
                 <td class="px-4 py-3"><?= $item['prioritas'] ?></td>
                 <td class="px-4 py-3">
