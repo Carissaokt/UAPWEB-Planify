@@ -60,7 +60,11 @@ while ($row = $result->fetch_assoc()) {
 <!-- Sidebar -->
 <aside class="w-64 bg-blue-600 text-white flex flex-col justify-between py-8 px-6 shadow-lg">
   <div>
-    <h1 class="text-2xl font-bold mb-10">PLANify Admin</h1>
+    <!-- Logo dan Judul -->
+    <div class="flex flex-col items-center mb-10">
+      <img src="../img/logoPlanify.png" alt="PLANify Logo" class="w-12 h-12 mb-2">
+      <h1 class="text-2xl font-bold">PLANify Admin</h1>
+    </div>
     <nav class="space-y-4">
       <a href="beranda_admin.php" class="flex items-center gap-3 py-2 px-3 rounded hover:bg-blue-500"> <i class="fas fa-chart-line"></i> Dashboard </a>
       <a href="kelola_tugas.php" class="flex items-center gap-3 py-2 px-3 rounded hover:bg-blue-500"> <i class="fas fa-tasks"></i> Tugas </a>
@@ -112,7 +116,7 @@ while ($row = $result->fetch_assoc()) {
       </thead>
       <tbody>
         <?php if (empty($dataPengguna)): ?>
-          <tr><td colspan="3" class="text-center py-4 text-gray-500 italic">Tidak ada hasil ditemukan.</td></tr>
+          <tr><td colspan="3" class="text-center py-4 text-gray-500 italic">Skala Prioritas Tugas Tidak Ditemukan.</td></tr>
         <?php else: ?>
           <?php foreach ($dataPengguna as $user => $dataList): ?>
             <?php foreach ($dataList as $item): ?>
